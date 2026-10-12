@@ -41,6 +41,11 @@ def test_url_for():
     # 下面这个调用传入了多余的关键字参数，它们会被作为查询字符串附加到 URL 后面。
     print(url_for('test_url_for', num=2))  # 输出：/test?num=2
     return 'Test page'
+
+@app.errorhandler(404)  # 传入要处理的错误代码
+def page_not_found(error):  # 接受异常对象作为参数
+    return render_template('404.html'), 404  # 返回模板和状态码
+
 name = 'Grey Li'
 movies = [
     {'title': 'My Neighbor Totoro', 'year': '1988'},
@@ -59,6 +64,11 @@ def index():
     user = db.session.execute(select(User)).scalar()
     movies = db.session.execute(select(Movie)).scalars().all()
     return render_template('index.html', name=name, movies=movies)
+
+@app.context_processor
+def inject_user():  # 函数名可以随意修改
+    user = db.session.execute(select(User)).scalar()
+    return dict(user=user)  # 需要返回字典，等同于 return {'user': user}
 
 
 class User(db.Model):
@@ -82,8 +92,6 @@ def init_database(drop):
         db.drop_all()
     db.create_all()
     click.echo('Initialized database.')  # 输出提示信息
-
-
 
 @app.cli.command()
 def forge():
